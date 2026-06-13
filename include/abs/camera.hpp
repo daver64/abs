@@ -10,6 +10,16 @@ enum handedness {
     HANDEDNESS_LEFT,
 };
 
+struct camera_perspective {
+    vec3 position;
+    vec3 target;
+    vec3 up;
+    float fov_y_radians;
+    float z_near;
+    float z_far;
+    handedness h;
+};
+
 inline mat4 mat4_look_at(const vec3& eye, const vec3& target, const vec3& up, handedness h = HANDEDNESS_RIGHT) {
     if (h == HANDEDNESS_RIGHT) {
         const vec3 f = vec3_normalize(target - eye);
@@ -75,4 +85,22 @@ inline mat4 mat4_ortho(float left,
              {0.0f, 2.0f / tb, 0.0f, -(top + bottom) / tb},
              {0.0f, 0.0f, 1.0f / fn, -z_near / fn},
              {0.0f, 0.0f, 0.0f, 1.0f}}};
+}
+
+inline camera_perspective camera_perspective_default() {
+    return {{0.0f, 0.0f, 3.0f},
+            {0.0f, 0.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            1.0471975512f,
+            0.1f,
+            100.0f,
+            HANDEDNESS_RIGHT};
+}
+
+inline mat4 camera_view_matrix(const camera_perspective& c) {
+    return mat4_look_at(c.position, c.target, c.up, c.h);
+}
+
+inline mat4 camera_projection_matrix(const camera_perspective& c, float aspect) {
+    return mat4_perspective(c.fov_y_radians, aspect, c.z_near, c.z_far, c.h);
 }

@@ -11,6 +11,7 @@ Design style: plain POD-like structs and free functions/operators, with C-style 
 - Header-only library target: `abs::abs`
 - Optional demo executable: `abs_demo`
 - Optional scene example executable: `abs_scene_example`
+- Optional SDL3 + OpenGL4 example executable: `abs_sdl3_gl4_example`
 - Install/export support for downstream projects
 - Stable public include path layout under `include/abs/`
 - Consumer smoke-test example under `examples/consumer`
@@ -85,6 +86,39 @@ cmake --build build
 ```
 
 This example demonstrates camera setup, frustum culling, ray-sphere/triangle intersection, barycentrics, TBN basis creation, and sampling helpers in one small flow.
+
+## SDL3 + OpenGL4 Example
+
+This optional example uses SDL3 with a hardware OpenGL 4 core-profile context and modern shader-based rendering (no fixed-function pipeline).
+It explicitly uses the camera module (`camera_perspective`, `camera_view_matrix`, `camera_projection_matrix`) for view/projection.
+
+Controls:
+
+- `A` / `D`: orbit left/right (yaw)
+- `W` / `S`: orbit up/down (pitch)
+- `Q` / `E`: zoom in/out
+- `Esc`: quit
+
+Build with SDL3/GL4 target enabled:
+
+```bash
+cmake -S . -B build -DABS_BUILD_SDL3_GL4_EXAMPLE=ON -DABS_FETCH_SDL3=ON
+cmake --build build
+```
+
+Run:
+
+```bash
+./build/abs_sdl3_gl4_example
+```
+
+Requirements:
+
+- SDL3 development package discoverable by CMake OR enable local fetch (`-DABS_FETCH_SDL3=ON`)
+- OpenGL development libraries
+- GPU/driver supporting OpenGL 4+ core profile
+
+If SDL3 is not installed system-wide, CMake will fetch SDL3 into your local build tree when `ABS_FETCH_SDL3` is enabled.
 
 ## Benchmarks
 

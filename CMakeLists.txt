@@ -10,6 +10,8 @@ set(ABS_VERSION ${PROJECT_VERSION})
 option(ABS_BUILD_DEMO "Build the abs demo executable" ON)
 option(ABS_BUILD_BENCHMARKS "Build abs benchmark executable" OFF)
 option(ABS_BUILD_SCENE_EXAMPLE "Build abs scene example executable" ON)
+option(ABS_BUILD_SDL3_GL4_EXAMPLE "Build SDL3 OpenGL4 example executable" OFF)
+option(ABS_FETCH_SDL3 "Fetch SDL3 locally if SDL3 package is not found" ON)
 set(ABS_SIMD_MODE "SCALAR" CACHE STRING "SIMD backend: SCALAR, AUTO, SSE2, AVX2, or NEON")
 set_property(CACHE ABS_SIMD_MODE PROPERTY STRINGS SCALAR AUTO SSE2 AVX2 NEON)
 
@@ -62,6 +64,42 @@ endif()
 if(ABS_BUILD_SCENE_EXAMPLE)
     add_executable(abs_scene_example src/scene_example.cpp)
     target_link_libraries(abs_scene_example PRIVATE abs::abs)
+endif()
+
+if(ABS_BUILD_SDL3_GL4_EXAMPLE)
+    find_package(SDL3 CONFIG QUIET)
+    if(NOT SDL3_FOUND)
+        if(ABS_FETCH_SDL3)
+            include(FetchContent)
+
+            set(SDL_TEST OFF CACHE BOOL "" FORCE)
+            set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
+
+            FetchContent_Declare(
+                SDL3
+                GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+                GIT_TAG release-3.2.0
+                GIT_SHALLOW TRUE
+            )
+            FetchContent_MakeAvailable(SDL3)
+        else()
+            message(FATAL_ERROR "SDL3 not found. Install SDL3 or set ABS_FETCH_SDL3=ON.")
+        endif()
+    endif()
+
+    find_package(OpenGL REQUIRED)
+
+    add_executable(abs_sdl3_gl4_example examples/sdl3_gl4/main.cpp)
+
+    if(TARGET SDL3::SDL3)
+        target_link_libraries(abs_sdl3_gl4_example PRIVATE abs::abs SDL3::SDL3 OpenGL::GL)
+    elseif(TARGET SDL3::SDL3-shared)
+        target_link_libraries(abs_sdl3_gl4_example PRIVATE abs::abs SDL3::SDL3-shared OpenGL::GL)
+    elseif(TARGET SDL3::SDL3-static)
+        target_link_libraries(abs_sdl3_gl4_example PRIVATE abs::abs SDL3::SDL3-static OpenGL::GL)
+    else()
+        message(FATAL_ERROR "SDL3 target not found after discovery/fetch.")
+    endif()
 endif()
 
 install(TARGETS abs EXPORT absTargets)
