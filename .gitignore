@@ -1,0 +1,18 @@
+# Build and install artifacts
+build/
+install/
+
+# Local benchmark outputs
+benchmarks/results.csv
+
+# CPack artifacts
+_CPack_Packages/
+*.tar.gz
+*.zip
+
+# Nested build output
+examples/consumer/build/
+
+# Common editor/system files
+.vscode/
+.DS_Store

@@ -1,0 +1,45 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-install-consumer-smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -DABS_BUILD_DEMO=ON
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Install
+        run: cmake --install build --prefix "$GITHUB_WORKSPACE/install"
+
+      - name: Configure consumer example
+        run: >-
+          cmake -S examples/consumer
+          -B examples/consumer/build
+          -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/install"
+
+      - name: Build consumer example
+        run: cmake --build examples/consumer/build --config Release
+
+      - name: Run consumer example
+        run: ./examples/consumer/build/abs_consumer_example
+
+      - name: Package (binary)
+        run: cpack --config build/CPackConfig.cmake --verbose
+
+      - name: Package (source)
+        run: cpack --config build/CPackSourceConfig.cmake --verbose
+
+      - name: Verify package artifacts
+        run: |
+          test -n "$(ls build/*.tar.gz 2>/dev/null)"
+          test -n "$(ls build/*.zip 2>/dev/null)"
