@@ -1,6 +1,6 @@
 # abs
 
-Small C++ vector math library for 3D work, centered on a `vec3` type and overloaded arithmetic operators.
+Small C++ math library for 3D work covering vectors, quaternions, matrices, polar/spherical coordinate conversion, and SIMD-friendly batch operations.
 
 This project is packaged as an installable CMake library so other projects can consume it with `find_package`.
 
@@ -10,6 +10,7 @@ Design style: plain POD-like structs and free functions/operators, with C-style 
 
 - Header-only library target: `abs::abs`
 - Optional demo executable: `abs_demo`
+- Optional scene example executable: `abs_scene_example`
 - Install/export support for downstream projects
 - Stable public include path layout under `include/abs/`
 - Consumer smoke-test example under `examples/consumer`
@@ -22,11 +23,18 @@ Design style: plain POD-like structs and free functions/operators, with C-style 
 ## Modules
 
 - `vec3`: arithmetic operators, dot, cross, length, normalize, lerp
-- `quat`: quaternion arithmetic, axis-angle creation, normalization, vector rotation
-- `mat3`/`mat4`: identity, multiplication, vec3 transform helpers, TRS composition
+- `quat`: quaternion arithmetic, axis-angle creation, normalization, slerp/nlerp, Euler conversion
+- `mat3`/`mat4`: identity, multiplication, transpose, determinant, inverse, normal-matrix, TRS composition
 - polar/spherical coordinates: Cartesian conversion helpers
 - `simd`: aligned `vec4f`, backend selection, SIMD-friendly math helpers
 - `batch`: bulk vec3 dot/cross and matrix transforms (AoS wrappers + SoA fast path)
+- `camera`: look-at view matrix and perspective/orthographic projections
+- `geometry`: ray/plane/sphere/aabb/obb/triangle/frustum primitives and helpers
+- `intersection`: ray, primitive overlap, and frustum culling tests
+- `transform`: world/local conversions, TBN basis build, handedness conversion helpers
+- `numeric`: epsilon-safe comparisons, clamping, wrap-angle, safe normalize
+- `interpolation`: Hermite/Catmull-Rom/Bezier, smooth damp, critically damped spring, easing
+- `sampling`: disk/sphere/hemisphere sampling plus Halton/Hammersley sequences
 
 ## SIMD Configuration
 
@@ -69,6 +77,14 @@ cmake --build build
 ```bash
 ./build/abs_demo
 ```
+
+## Run Scene Example
+
+```bash
+./build/abs_scene_example
+```
+
+This example demonstrates camera setup, frustum culling, ray-sphere/triangle intersection, barycentrics, TBN basis creation, and sampling helpers in one small flow.
 
 ## Benchmarks
 
@@ -181,6 +197,13 @@ Module-level includes are also available:
 #include "abs/matrix.hpp"
 #include "abs/polar.hpp"
 #include "abs/simd.hpp"
+#include "abs/camera.hpp"
+#include "abs/geometry.hpp"
+#include "abs/intersection.hpp"
+#include "abs/transform.hpp"
+#include "abs/numeric.hpp"
+#include "abs/interpolation.hpp"
+#include "abs/sampling.hpp"
 #include "abs/batch.hpp"
 ```
 
@@ -257,6 +280,18 @@ vec3 back = spherical_to_vec3(s);
 vec4f p = vec4f_from_vec3(a, 1.0f);
 vec4f r = vec4f_add(p, vec4f_set(1.0f, 1.0f, 1.0f, 0.0f));
 float dp = vec4f_dot4(p, r);
+
+mat4 view = mat4_look_at({0.0f, 2.0f, 6.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
+mat4 proj = mat4_perspective(1.0471975512f, 16.0f / 9.0f, 0.1f, 1000.0f);
+frustum fr = frustum_from_view_projection(mat4_mul(proj, view));
+
+sphere s1{{0.0f, 0.0f, 0.0f}, 1.0f};
+bool visible = intersects_frustum_sphere(fr, s1);
+
+float angle = wrap_angle_pi(7.0f);
+float eased = ease_in_out_cubic(0.35f);
+
+vec3 h = sample_uniform_hemisphere(0.42f, 0.73f);
 ```
 
 ## Batch API Sketch

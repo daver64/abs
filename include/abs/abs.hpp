@@ -1,8 +1,15 @@
 #pragma once
 
 #include "abs/batch.hpp"
+#include "abs/camera.hpp"
+#include "abs/geometry.hpp"
+#include "abs/interpolation.hpp"
+#include "abs/intersection.hpp"
 #include "abs/matrix.hpp"
+#include "abs/numeric.hpp"
 #include "abs/polar.hpp"
 #include "abs/quaternion.hpp"
+#include "abs/sampling.hpp"
 #include "abs/simd.hpp"
+#include "abs/transform.hpp"
 #include "abs/vec3.hpp"

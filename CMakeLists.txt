@@ -9,6 +9,7 @@ set(ABS_VERSION ${PROJECT_VERSION})
 
 option(ABS_BUILD_DEMO "Build the abs demo executable" ON)
 option(ABS_BUILD_BENCHMARKS "Build abs benchmark executable" OFF)
+option(ABS_BUILD_SCENE_EXAMPLE "Build abs scene example executable" ON)
 set(ABS_SIMD_MODE "SCALAR" CACHE STRING "SIMD backend: SCALAR, AUTO, SSE2, AVX2, or NEON")
 set_property(CACHE ABS_SIMD_MODE PROPERTY STRINGS SCALAR AUTO SSE2 AVX2 NEON)
 
@@ -56,6 +57,11 @@ endif()
 if(ABS_BUILD_BENCHMARKS)
     add_executable(abs_bench benchmarks/abs_bench.cpp)
     target_link_libraries(abs_bench PRIVATE abs::abs)
+endif()
+
+if(ABS_BUILD_SCENE_EXAMPLE)
+    add_executable(abs_scene_example src/scene_example.cpp)
+    target_link_libraries(abs_scene_example PRIVATE abs::abs)
 endif()
 
 install(TARGETS abs EXPORT absTargets)

@@ -13,6 +13,19 @@ struct mat4 {
     float m[4][4];
 };
 
+inline mat3 mat3_transpose(const mat3& a) {
+    return {{{a.m[0][0], a.m[1][0], a.m[2][0]},
+             {a.m[0][1], a.m[1][1], a.m[2][1]},
+             {a.m[0][2], a.m[1][2], a.m[2][2]}}};
+}
+
+inline mat4 mat4_transpose(const mat4& a) {
+    return {{{a.m[0][0], a.m[1][0], a.m[2][0], a.m[3][0]},
+             {a.m[0][1], a.m[1][1], a.m[2][1], a.m[3][1]},
+             {a.m[0][2], a.m[1][2], a.m[2][2], a.m[3][2]},
+             {a.m[0][3], a.m[1][3], a.m[2][3], a.m[3][3]}}};
+}
+
 inline mat3 mat3_identity() {
     return {{{1.0f, 0.0f, 0.0f},
              {0.0f, 1.0f, 0.0f},
@@ -52,6 +65,126 @@ inline mat4 mat4_mul(const mat4& a, const mat4& b) {
         }
     }
     return out;
+}
+
+inline float mat3_determinant(const mat3& a) {
+    return a.m[0][0] * (a.m[1][1] * a.m[2][2] - a.m[1][2] * a.m[2][1])
+         - a.m[0][1] * (a.m[1][0] * a.m[2][2] - a.m[1][2] * a.m[2][0])
+         + a.m[0][2] * (a.m[1][0] * a.m[2][1] - a.m[1][1] * a.m[2][0]);
+}
+
+inline mat3 mat3_inverse(const mat3& a) {
+    const float det = mat3_determinant(a);
+    if (std::fabs(det) <= 1e-8f) {
+        return mat3_identity();
+    }
+
+    const float inv_det = 1.0f / det;
+    mat3 out{};
+    out.m[0][0] = (a.m[1][1] * a.m[2][2] - a.m[1][2] * a.m[2][1]) * inv_det;
+    out.m[0][1] = (a.m[0][2] * a.m[2][1] - a.m[0][1] * a.m[2][2]) * inv_det;
+    out.m[0][2] = (a.m[0][1] * a.m[1][2] - a.m[0][2] * a.m[1][1]) * inv_det;
+
+    out.m[1][0] = (a.m[1][2] * a.m[2][0] - a.m[1][0] * a.m[2][2]) * inv_det;
+    out.m[1][1] = (a.m[0][0] * a.m[2][2] - a.m[0][2] * a.m[2][0]) * inv_det;
+    out.m[1][2] = (a.m[0][2] * a.m[1][0] - a.m[0][0] * a.m[1][2]) * inv_det;
+
+    out.m[2][0] = (a.m[1][0] * a.m[2][1] - a.m[1][1] * a.m[2][0]) * inv_det;
+    out.m[2][1] = (a.m[0][1] * a.m[2][0] - a.m[0][0] * a.m[2][1]) * inv_det;
+    out.m[2][2] = (a.m[0][0] * a.m[1][1] - a.m[0][1] * a.m[1][0]) * inv_det;
+    return out;
+}
+
+inline float mat4_determinant(const mat4& a) {
+    const float s0 = a.m[0][0] * a.m[1][1] - a.m[1][0] * a.m[0][1];
+    const float s1 = a.m[0][0] * a.m[1][2] - a.m[1][0] * a.m[0][2];
+    const float s2 = a.m[0][0] * a.m[1][3] - a.m[1][0] * a.m[0][3];
+    const float s3 = a.m[0][1] * a.m[1][2] - a.m[1][1] * a.m[0][2];
+    const float s4 = a.m[0][1] * a.m[1][3] - a.m[1][1] * a.m[0][3];
+    const float s5 = a.m[0][2] * a.m[1][3] - a.m[1][2] * a.m[0][3];
+
+    const float c5 = a.m[2][2] * a.m[3][3] - a.m[3][2] * a.m[2][3];
+    const float c4 = a.m[2][1] * a.m[3][3] - a.m[3][1] * a.m[2][3];
+    const float c3 = a.m[2][1] * a.m[3][2] - a.m[3][1] * a.m[2][2];
+    const float c2 = a.m[2][0] * a.m[3][3] - a.m[3][0] * a.m[2][3];
+    const float c1 = a.m[2][0] * a.m[3][2] - a.m[3][0] * a.m[2][2];
+    const float c0 = a.m[2][0] * a.m[3][1] - a.m[3][0] * a.m[2][1];
+
+    return s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0;
+}
+
+inline mat4 mat4_inverse(const mat4& a) {
+    const float s0 = a.m[0][0] * a.m[1][1] - a.m[1][0] * a.m[0][1];
+    const float s1 = a.m[0][0] * a.m[1][2] - a.m[1][0] * a.m[0][2];
+    const float s2 = a.m[0][0] * a.m[1][3] - a.m[1][0] * a.m[0][3];
+    const float s3 = a.m[0][1] * a.m[1][2] - a.m[1][1] * a.m[0][2];
+    const float s4 = a.m[0][1] * a.m[1][3] - a.m[1][1] * a.m[0][3];
+    const float s5 = a.m[0][2] * a.m[1][3] - a.m[1][2] * a.m[0][3];
+
+    const float c5 = a.m[2][2] * a.m[3][3] - a.m[3][2] * a.m[2][3];
+    const float c4 = a.m[2][1] * a.m[3][3] - a.m[3][1] * a.m[2][3];
+    const float c3 = a.m[2][1] * a.m[3][2] - a.m[3][1] * a.m[2][2];
+    const float c2 = a.m[2][0] * a.m[3][3] - a.m[3][0] * a.m[2][3];
+    const float c1 = a.m[2][0] * a.m[3][2] - a.m[3][0] * a.m[2][2];
+    const float c0 = a.m[2][0] * a.m[3][1] - a.m[3][0] * a.m[2][1];
+
+    const float det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0;
+    if (std::fabs(det) <= 1e-8f) {
+        return mat4_identity();
+    }
+
+    const float inv_det = 1.0f / det;
+    mat4 out{};
+
+    out.m[0][0] = (a.m[1][1] * c5 - a.m[1][2] * c4 + a.m[1][3] * c3) * inv_det;
+    out.m[0][1] = (-a.m[0][1] * c5 + a.m[0][2] * c4 - a.m[0][3] * c3) * inv_det;
+    out.m[0][2] = (a.m[3][1] * s5 - a.m[3][2] * s4 + a.m[3][3] * s3) * inv_det;
+    out.m[0][3] = (-a.m[2][1] * s5 + a.m[2][2] * s4 - a.m[2][3] * s3) * inv_det;
+
+    out.m[1][0] = (-a.m[1][0] * c5 + a.m[1][2] * c2 - a.m[1][3] * c1) * inv_det;
+    out.m[1][1] = (a.m[0][0] * c5 - a.m[0][2] * c2 + a.m[0][3] * c1) * inv_det;
+    out.m[1][2] = (-a.m[3][0] * s5 + a.m[3][2] * s2 - a.m[3][3] * s1) * inv_det;
+    out.m[1][3] = (a.m[2][0] * s5 - a.m[2][2] * s2 + a.m[2][3] * s1) * inv_det;
+
+    out.m[2][0] = (a.m[1][0] * c4 - a.m[1][1] * c2 + a.m[1][3] * c0) * inv_det;
+    out.m[2][1] = (-a.m[0][0] * c4 + a.m[0][1] * c2 - a.m[0][3] * c0) * inv_det;
+    out.m[2][2] = (a.m[3][0] * s4 - a.m[3][1] * s2 + a.m[3][3] * s0) * inv_det;
+    out.m[2][3] = (-a.m[2][0] * s4 + a.m[2][1] * s2 - a.m[2][3] * s0) * inv_det;
+
+    out.m[3][0] = (-a.m[1][0] * c3 + a.m[1][1] * c1 - a.m[1][2] * c0) * inv_det;
+    out.m[3][1] = (a.m[0][0] * c3 - a.m[0][1] * c1 + a.m[0][2] * c0) * inv_det;
+    out.m[3][2] = (-a.m[3][0] * s3 + a.m[3][1] * s1 - a.m[3][2] * s0) * inv_det;
+    out.m[3][3] = (a.m[2][0] * s3 - a.m[2][1] * s1 + a.m[2][2] * s0) * inv_det;
+
+    return out;
+}
+
+inline mat4 mat4_inverse_affine(const mat4& a) {
+    mat3 r{{{a.m[0][0], a.m[0][1], a.m[0][2]},
+            {a.m[1][0], a.m[1][1], a.m[1][2]},
+            {a.m[2][0], a.m[2][1], a.m[2][2]}}};
+    const vec3 t{a.m[0][3], a.m[1][3], a.m[2][3]};
+
+    const mat3 r_inv = mat3_inverse(r);
+    const vec3 rt = {
+        r_inv.m[0][0] * t.x + r_inv.m[0][1] * t.y + r_inv.m[0][2] * t.z,
+        r_inv.m[1][0] * t.x + r_inv.m[1][1] * t.y + r_inv.m[1][2] * t.z,
+        r_inv.m[2][0] * t.x + r_inv.m[2][1] * t.y + r_inv.m[2][2] * t.z,
+    };
+    const vec3 t_inv = -rt;
+
+    return {{{r_inv.m[0][0], r_inv.m[0][1], r_inv.m[0][2], t_inv.x},
+             {r_inv.m[1][0], r_inv.m[1][1], r_inv.m[1][2], t_inv.y},
+             {r_inv.m[2][0], r_inv.m[2][1], r_inv.m[2][2], t_inv.z},
+             {0.0f, 0.0f, 0.0f, 1.0f}}};
+}
+
+inline mat3 mat3_normal_matrix_from_mat4(const mat4& model) {
+    const mat4 inv = mat4_inverse_affine(model);
+    const mat4 inv_t = mat4_transpose(inv);
+    return {{{inv_t.m[0][0], inv_t.m[0][1], inv_t.m[0][2]},
+             {inv_t.m[1][0], inv_t.m[1][1], inv_t.m[1][2]},
+             {inv_t.m[2][0], inv_t.m[2][1], inv_t.m[2][2]}}};
 }
 
 inline vec3 mat3_mul_vec3(const mat3& m, const vec3& v) {
